@@ -1,0 +1,37 @@
+name: subscriptions
+
+services:
+  subscriptions:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks: [backend-network]
+    env_file: .env.docker
+
+  database:
+    image: surrealdb/surrealdb:v2.3.6
+    restart: unless-stopped
+    command: start
+    user: root
+    networks: [backend-network]
+    environment:
+      SURREAL_PATH: rocksdb://db
+      SURREAL_USER: $DATABASE_USER
+      SURREAL_PASS: $DATABASE_PASSWORD
+      SURREAL_LOG: $DATABASE_LOG
+      SURREAL_BIND: 0.0.0.0:$DATABASE_PORT
+      SURREAL_STRICT: true
+    volumes: [database_data:/db]
+    ports: [$DATABASE_PORT:$DATABASE_PORT]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:$DATABASE_PORT/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  backend-network:
+
+volumes:
+  database_data:

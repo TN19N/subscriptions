@@ -1,0 +1,12 @@
+# Rust build dir
+/target
+
+# Rust tests
+/tests/
+
+# environment variables
+.env*
+
+# Docker
+/Dockerfile
+/docker-compose.yml

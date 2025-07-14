@@ -1,0 +1,7 @@
+# Rust
+/target
+
+# environment variables
+.env*
+!.env.example
+!.env.test

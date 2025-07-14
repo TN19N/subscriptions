@@ -1,0 +1,81 @@
+name: Continuous Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    # Add permissions to the job
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache
+        uses: actions/cache@v4
+        id: cache
+        with:
+          path: cache-mount
+          key: cache-mount-${{ hashFiles('./Dockerfile') }}
+
+      - name: Restore Docker cache mounts
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          cache-dir: cache-mount
+          dockerfile: ./Dockerfile
+          skip-extraction: ${{ steps.cache.outputs.cache-hit }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ vars.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy to Google Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ vars.GCP_CLOUD_RUN_SERVICE }} # The name of your Cloud Run service
+          region: ${{ vars.GCP_CLOUD_RUN_REGION }} # The region of your service (e.g., us-central1)
+          image: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
+          flags: '--allow-unauthenticated' # This flag grants public access
+          env_vars: |-
+            RUST_LOG=${{ vars.RUST_LOG }}
+            SUBSCRIPTIONS__PORT=${{ vars.SUBSCRIPTIONS__PORT }}
+            SUBSCRIPTIONS__HOST=${{ vars.SUBSCRIPTIONS__HOST }}
+            SUBSCRIPTIONS__DATABASE__URL=${{ vars.SUBSCRIPTIONS__DATABASE__URL }}
+            SUBSCRIPTIONS__DATABASE__USERNAME=${{ vars.SUBSCRIPTIONS__DATABASE__USERNAME }}
+            SUBSCRIPTIONS__DATABASE__PASSWORD=${{ secrets.SUBSCRIPTIONS__DATABASE__PASSWORD }}
+            SUBSCRIPTIONS__DATABASE__NAMESPACE=${{ vars.SUBSCRIPTIONS__DATABASE__NAMESPACE }}
+            SUBSCRIPTIONS__DATABASE__NAME=${{ vars.SUBSCRIPTIONS__DATABASE__NAME }}
+
+      - name: Deployment URL
+        run: 'echo "${{ steps.deploy.outputs.url }}"'
