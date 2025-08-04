@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/toolchain.json
+
+rust:
+  version: "1.88.0"
+  syncToolchainConfig: true
+  bins:
+    - bin: bacon@3.16.0
+      local: true
+    - bin: cargo-edit@0.13.6
+      local: true
+    - bin: surrealdb-migrations@2.3.0
+      local: true
+    - bin: systemfd@0.4.6
+      local: true

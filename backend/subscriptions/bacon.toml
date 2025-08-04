@@ -1,0 +1,9 @@
+[jobs.run]
+command = ["cargo", "run"]
+watch = [".env"]
+allow_failures = true
+allow_warnings = true
+apply_gitignore = false
+need_stdout = true
+background = false
+on_change_strategy = "kill_then_restart"

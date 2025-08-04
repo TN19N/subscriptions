@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/tasks.json
+
+fileGroups:
+  sources:
+    - src/**/*
+    - Cargo.toml
+    - .env
+    - /Cargo.toml
+
+tasks:
+  build:
+    command: cargo build
+    description: Compile a local package and all of its dependencies
+    inputs:
+      - "@globs(sources)"
+  run:
+    command: cargo run
+    description: Run a binary or example of the local package
+    inputs:
+      - "@globs(sources)"
+  bacon:
+    command: bacon
+    description: bacon watches your project and runs jobs in background
+    preset: watcher
+  check:
+    command: cargo check
+    description: Check a local package and all of its dependencies for errors
+    inputs:
+      - "@globs(sources)"
+  fmt:
+    command: cargo fmt
+    description: This utility formats all bin and lib files of the current crate using rustfmt
+    inputs:
+      - "@globs(sources)"
+  fmt/check:
+    extends: fmt
+    args: ["--check"]
+  clippy:
+    command: cargo clippy
+    description: hecks a package to catch common mistakes and improve your Rust code
+    inputs:
+      - "@globs(sources)"
+  clippy/check:
+    extends: clippy
+    args: ["--", "--deny", "warnings"]
