@@ -1,11 +1,20 @@
 name: zero2prod
 
 services:
+  subscriptions:
+    build:
+      context: .
+      dockerfile: ./backend/subscriptions/Dockerfile
+    restart: unless-stopped
+    networks: [backend-network]
+    env_file: .env
+
   database:
     image: surrealdb/surrealdb:v2.3.6
     restart: unless-stopped
     command: start
     user: root
+    networks: [backend-network]
     environment:
       SURREAL_PATH: rocksdb://db
       SURREAL_USER: $DATABASE_USER
@@ -20,6 +29,9 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+networks:
+  backend-network:
 
 volumes:
   database_data:

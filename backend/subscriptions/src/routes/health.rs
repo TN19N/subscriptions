@@ -1,6 +1,14 @@
+use crate::Result;
+use axum::extract::State;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 
-pub async fn health() -> impl IntoResponse {
-    StatusCode::OK
+pub async fn health(State(mm): State<model::Manager>) -> Result<StatusCode> {
+    mm.db()
+        .await
+        .map_err(Box::new)?
+        .health()
+        .await
+        .map_err(Box::new)?;
+
+    Ok(StatusCode::OK)
 }

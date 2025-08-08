@@ -5,9 +5,9 @@ edition = { workspace = true }
 authors = { workspace = true }
 
 [dependencies]
-axum = { workspace = true }
+axum = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
-tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync"] }
 url = { workspace = true }
 config = { workspace = true, features = ["convert-case"] }
 model = { workspace = true }
@@ -15,6 +15,15 @@ rand = { workspace = true }
 dotenvy = { workspace = true }
 surrealdb = { workspace = true }
 serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"] }
+tower-http = { workspace = true, features = ["trace", "request-id"] }
+thiserror = { workspace = true }
+tower = { workspace = true }
+once_cell = { workspace = true }
+http-body-util = { workspace = true }
+mime = { workspace = true }
+secrecy = { workspace = true, features = ["serde"] }
 
 [dev-dependencies]
 reqwest = { workspace = true }

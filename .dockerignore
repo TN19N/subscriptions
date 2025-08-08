@@ -1,0 +1,10 @@
+# Rust build directory
+/target
+
+# environment variables
+.env
+
+# moon
+.moon/cache
+.moon/docker
+.moon/hooks

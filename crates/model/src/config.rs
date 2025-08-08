@@ -6,7 +6,7 @@ use url::Url;
 pub struct Config {
     pub url: Url,
     pub username: String,
-    pub password: String,
+    pub password: secrecy::SecretString,
     pub namespace: Option<String>,
     pub name: Option<String>,
 }

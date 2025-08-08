@@ -1,4 +1,4 @@
-use crate::Config;
+use crate::{Config, Result};
 use axum::extract::FromRef;
 
 #[derive(Debug, Clone)]
@@ -7,9 +7,9 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub async fn new(config: &Config) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn new(config: &Config) -> Result<Self> {
         Ok(Self {
-            mm: model::Manager::new(&config.database).await?,
+            mm: model::Manager::new(config.database.clone()),
         })
     }
 }

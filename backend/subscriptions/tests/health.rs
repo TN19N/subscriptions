@@ -1,83 +1,117 @@
-use rand::Rng;
-use reqwest::StatusCode;
+use axum::{Router, body::Body, http};
+use http_body_util::BodyExt;
+use reqwest::{Method, StatusCode};
 use serde::Deserialize;
-use std::{error::Error, time::Duration};
 use subscriptions::Config;
-use surrealdb::{RecordId, Uuid};
-use url::Url;
+use surrealdb::RecordId;
+use tokio::sync::OnceCell;
+use tower::ServiceExt;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-async fn spawn_app() -> Result<(Url, Config), Box<dyn Error>> {
-    let mut rng = rand::rng();
-    let mut config = Config::load()?;
+type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-    config.port = rng.random_range(1000..u16::MAX);
-    config.database.name = Some(Uuid::new_v4().to_string());
+async fn init() -> Result<(Router, Config)> {
+    static TRACING: OnceCell<()> = OnceCell::const_new();
 
-    let url = Url::parse(&format!("http://localhost:{}", config.port))?;
-    tokio::spawn(subscriptions::run(config.clone()));
+    TRACING
+        .get_or_init(async || {
+            // Load environment variables from .env file if exists
+            dotenvy::dotenv_override().ok();
 
-    // wait for the server to start
-    tokio::time::sleep(Duration::from_millis(100)).await;
+            // Initialize tracing
+            tracing_subscriber::registry()
+                .with(tracing_subscriber::EnvFilter::from_default_env())
+                .with(tracing_subscriber::fmt::layer().with_test_writer())
+                .init();
+        })
+        .await;
 
-    Ok((url, config))
+    let config = Config::load()?;
+    Ok((subscriptions::init(&config).await?, config))
 }
 
 #[tokio::test]
-async fn health_works() -> Result<(), Box<dyn Error>> {
+async fn health_works() {
     // Arrange
-    let (url, _) = spawn_app().await?;
-    let client = reqwest::Client::new();
+    let (app, _) = init().await.expect("Expected App to be initialized!");
 
     // Act
-    let response = client.get(url.join("/health")?).send().await?;
+    let response = app
+        .oneshot(
+            http::Request::builder()
+                .method(Method::GET)
+                .uri("/health")
+                .body(Body::empty())
+                .unwrap(),
+        )
+        .await
+        .expect("Expected Request to be successful");
 
     // Assert
     assert!(response.status().is_success());
-    assert_eq!(Some(0), response.content_length());
-    Ok(())
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    assert!(body.is_empty());
 }
 
 #[tokio::test]
-async fn subscribe_works() -> Result<(), Box<dyn Error>> {
+async fn subscribe_works() {
     // Arrange
-    let (url, config) = spawn_app().await?;
-    let mm = model::Manager::new(&config.database).await?;
-    let client = reqwest::Client::new();
+    let (app, config) = init().await.expect("Expected App to be initialized!");
+    let mm = model::Manager::new(config.database.clone());
 
     // Act
+    mm.db()
+        .await
+        .expect("Expected Database to be connected")
+        .query("DELETE subscriptions WHERE email = 'ursula_le_guin@gmail.com'")
+        .await
+        .expect("Expect Query to be successful");
+
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
-    let response = client
-        .post(url.join("/subscriptions")?)
-        .header("Content-Type", "application/x-www-form-urlencoded")
-        .body(body)
-        .send()
-        .await?;
+    let response = app
+        .oneshot(
+            http::Request::builder()
+                .method(Method::POST)
+                .uri("/subscriptions")
+                .header(
+                    http::header::CONTENT_TYPE,
+                    mime::APPLICATION_WWW_FORM_URLENCODED.as_ref(),
+                )
+                .body(Body::from(body))
+                .unwrap(),
+        )
+        .await
+        .expect("Expected Request to be successful");
 
     // Assert
     #[derive(Deserialize)]
     struct QueryResult {
-        id: RecordId,
+        #[serde(rename = "id")]
+        _id: RecordId,
     }
     let result: Option<QueryResult> = mm
         .db()
+        .await
+        .expect("Expected Database to be connected")
         .query("SELECT id FROM ONLY subscriptions WHERE email = 'ursula_le_guin@gmail.com'")
-        .await?
-        .take(0)?;
+        .await
+        .expect("query should be successful")
+        .take(0)
+        .expect("query result should be valid");
 
     assert!(
         result.is_some(),
         "Subscription with the email 'ursula_le_guin@gmail.com' not found"
     );
     assert_eq!(response.status(), StatusCode::CREATED);
-    assert_eq!(Some(0), response.content_length());
-    Ok(())
+    let body = response.into_body().collect().await.unwrap().to_bytes();
+    assert!(body.is_empty());
 }
 
 #[tokio::test]
-async fn subscribe_failed() -> Result<(), Box<dyn Error>> {
+async fn subscribe_failed() {
     // Arrange
-    let (url, _) = spawn_app().await?;
-    let client = reqwest::Client::new();
+    let (app, _) = init().await.expect("Expected App to be initialized!");
     let test_cases = [
         ("name=le%20guin", "missing the email"),
         ("email=ursula_le_guin%40gmail.com", "missing the name"),
@@ -86,12 +120,21 @@ async fn subscribe_failed() -> Result<(), Box<dyn Error>> {
 
     for (invalid_body, error_message) in test_cases {
         // Act
-        let response = client
-            .post(url.join("/subscriptions")?)
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .body(invalid_body)
-            .send()
-            .await?;
+        let response = app
+            .clone()
+            .oneshot(
+                http::Request::builder()
+                    .method(Method::POST)
+                    .uri("/subscriptions")
+                    .header(
+                        http::header::CONTENT_TYPE,
+                        mime::APPLICATION_WWW_FORM_URLENCODED.as_ref(),
+                    )
+                    .body(Body::from(invalid_body))
+                    .unwrap(),
+            )
+            .await
+            .expect("Expected Request to be successful");
 
         // Assert
         assert_eq!(
@@ -100,6 +143,4 @@ async fn subscribe_failed() -> Result<(), Box<dyn Error>> {
             "The Api did not fail with 400 Bad Request when payload was {error_message}."
         );
     }
-
-    Ok(())
 }

@@ -12,3 +12,5 @@ rust:
       local: true
     - bin: systemfd@0.4.6
       local: true
+    - bin: cargo-udeps@0.1.57
+      local: true

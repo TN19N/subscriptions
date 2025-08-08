@@ -6,6 +6,8 @@ fileGroups:
     - Cargo.toml
     - .env
     - /Cargo.toml
+  tests:
+    - tests/**/*
 
 tasks:
   build:
@@ -18,6 +20,12 @@ tasks:
     description: Run a binary or example of the local package
     inputs:
       - "@globs(sources)"
+  test:
+    command: cargo test
+    description: Execute all unit and integration tests and build examples of a local package
+    inputs:
+      - "@globs(sources)"
+      - "@globs(tests)"
   bacon:
     command: bacon
     description: bacon watches your project and runs jobs in background
