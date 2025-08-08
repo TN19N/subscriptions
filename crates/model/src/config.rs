@@ -7,8 +7,8 @@ pub struct Config {
     pub url: Url,
     pub username: String,
     pub password: secrecy::SecretString,
-    pub namespace: Option<String>,
-    pub name: Option<String>,
+    pub namespace: String,
+    pub name: String,
 }
 
 impl Debug for Config {

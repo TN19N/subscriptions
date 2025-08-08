@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::Result;
 use axum::{Form, extract::State, http::StatusCode};
 use serde::Deserialize;
@@ -10,7 +12,7 @@ pub struct FormData {
 
 #[tracing::instrument(skip(mm))]
 pub async fn subscribe(
-    State(mm): State<model::Manager>,
+    State(mm): State<Arc<model::Manager>>,
     Form(form): Form<FormData>,
 ) -> Result<StatusCode> {
     mm.db()

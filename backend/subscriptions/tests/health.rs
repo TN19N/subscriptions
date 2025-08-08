@@ -2,7 +2,7 @@ use axum::{Router, body::Body, http};
 use http_body_util::BodyExt;
 use reqwest::{Method, StatusCode};
 use serde::Deserialize;
-use subscriptions::Config;
+use subscriptions::{AppState, Config};
 use surrealdb::RecordId;
 use tokio::sync::OnceCell;
 use tower::ServiceExt;
@@ -10,7 +10,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
 
-async fn init() -> Result<(Router, Config)> {
+async fn init() -> Result<(Router, AppState)> {
     static TRACING: OnceCell<()> = OnceCell::const_new();
 
     TRACING
@@ -27,7 +27,7 @@ async fn init() -> Result<(Router, Config)> {
         .await;
 
     let config = Config::load()?;
-    Ok((subscriptions::init(&config).await?, config))
+    Ok(subscriptions::init(&config).await?)
 }
 
 #[tokio::test]
@@ -56,17 +56,9 @@ async fn health_works() {
 #[tokio::test]
 async fn subscribe_works() {
     // Arrange
-    let (app, config) = init().await.expect("Expected App to be initialized!");
-    let mm = model::Manager::new(config.database.clone());
+    let (app, state) = init().await.expect("Expected App to be initialized!");
 
     // Act
-    mm.db()
-        .await
-        .expect("Expected Database to be connected")
-        .query("DELETE subscriptions WHERE email = 'ursula_le_guin@gmail.com'")
-        .await
-        .expect("Expect Query to be successful");
-
     let body = "name=le%20guin&email=ursula_le_guin%40gmail.com";
     let response = app
         .oneshot(
@@ -89,7 +81,8 @@ async fn subscribe_works() {
         #[serde(rename = "id")]
         _id: RecordId,
     }
-    let result: Option<QueryResult> = mm
+    let result: Option<QueryResult> = state
+        .mm
         .db()
         .await
         .expect("Expected Database to be connected")
