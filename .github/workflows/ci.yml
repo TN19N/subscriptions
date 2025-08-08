@@ -16,8 +16,10 @@ jobs:
 
       - name: Set up toolchain
         uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
 
-      - run: moon ci
+      - run: moon ci --color
         env:
           RUST_LOG: ${{ env.RUST_LOG }}
           SUBSCRIPTIONS__APPLICATION__PORT: ${{ env.SUBSCRIPTIONS__APPLICATION__PORT }}
