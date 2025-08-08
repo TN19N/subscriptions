@@ -5,7 +5,7 @@ edition = { workspace = true }
 authors = { workspace = true }
 
 [dependencies]
-surrealdb = { workspace = true }
+surrealdb = { workspace = true, features = ["kv-mem"] }
 config = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
 serde = { workspace = true }
@@ -13,3 +13,5 @@ url = { workspace = true, features = ["serde"] }
 thiserror = { workspace = true }
 secrecy = { workspace = true, features = ["serde"] }
 tracing = { workspace = true }
+surrealdb-migrations = { workspace = true }
+include_dir = { workspace = true } 

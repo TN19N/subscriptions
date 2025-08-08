@@ -7,5 +7,6 @@ tasks:
   migrations:
     command: surrealdb-migrations
     description: An awesome CLI for SurrealDB migrations (provides commands to scaffold, create and apply migrations)
+    local: true
     options:
       envFile: true

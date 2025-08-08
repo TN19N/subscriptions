@@ -13,11 +13,13 @@ tasks:
   build:
     command: cargo build
     description: Compile a local package and all of its dependencies
+    local: true
     inputs:
       - "@globs(sources)"
   run:
     command: cargo run
     description: Run a binary or example of the local package
+    local: true
     inputs:
       - "@globs(sources)"
   test:
@@ -38,16 +40,20 @@ tasks:
   fmt:
     command: cargo fmt
     description: This utility formats all bin and lib files of the current crate using rustfmt
+    local: true
     inputs:
       - "@globs(sources)"
   fmt/check:
     extends: fmt
+    local: false
     args: ["--check"]
   clippy:
     command: cargo clippy
     description: hecks a package to catch common mistakes and improve your Rust code
+    local: true
     inputs:
       - "@globs(sources)"
   clippy/check:
     extends: clippy
+    local: false
     args: ["--", "--deny", "warnings"]

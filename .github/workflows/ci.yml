@@ -1,11 +1,33 @@
-# name: Rust
+name: Continuous Integration
 
-# on:
-#   pull_request:
-#     branches:
-#       - main
+on:
+  pull_request:
+    branches:
+      - main
 
-# env:
-#   CARGO_TERM_COLOR: always
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-# jobs:
+      - name: Set up toolchain
+        uses: "moonrepo/setup-toolchain@v0"
+
+      - run: "moon ci"
+        env:
+          RUST_LOG: ${{ env.RUST_LOG }}
+          SUBSCRIPTIONS__APPLICATION__PORT: ${{ env.SUBSCRIPTIONS__APPLICATION__PORT }}
+          SUBSCRIPTIONS__APPLICATION__HOST: ${{ env.SUBSCRIPTIONS__APPLICATION__HOST }} 
+          SUBSCRIPTIONS__DATABASE__URL: ${{ env.SUBSCRIPTIONS__DATABASE__URL }} 
+          SUBSCRIPTIONS__DATABASE__USERNAME: ${{ env.SUBSCRIPTIONS__DATABASE__USERNAME }} 
+          SUBSCRIPTIONS__DATABASE__PASSWORD: ${{ secrets.SUBSCRIPTIONS__DATABASE__PASSWORD }} 
+          SUBSCRIPTIONS__DATABASE__NAMESPACE: ${{ env.SUBSCRIPTIONS__DATABASE__NAMESPACE }} 
+          SUBSCRIPTIONS__DATABASE__NAME: ${{ env.SUBSCRIPTIONS__DATABASE__NAME }} 
+
+      - name: Run report
+        uses: "moonrepo/run-report-action@v1"
+        if: success() || failure()
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}

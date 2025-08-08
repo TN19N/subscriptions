@@ -15,4 +15,4 @@ vcs:
   syncHooks: true
   hooks:
     pre-commit:
-      - moon :check :fmt/check :clippy/check :test --affected --status=staged
+      - moon ci
