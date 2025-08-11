@@ -49,4 +49,6 @@ FROM base AS start
 # Copy built sources
 COPY --from=build /app/target/release/subscriptions .
 
+EXPOSE 8080
+
 CMD ["./subscriptions"]
