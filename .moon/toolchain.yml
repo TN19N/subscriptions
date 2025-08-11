@@ -1,8 +1,9 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/toolchain.json
 
 rust:
-  version: "1.88.0"
+  version: 1.89.0
   syncToolchainConfig: true
+  binstallVersion: 1.14.4
   bins:
     - bin: bacon@3.16.0
       local: true
