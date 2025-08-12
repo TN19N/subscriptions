@@ -9,7 +9,7 @@ WORKDIR /app
 FROM base AS base-moon
 
 # Install dependencies
-RUN apk add --no-cache curl bash libgcc musl-dev build-base lld clang
+RUN apk add --no-cache curl bash libgcc musl-dev build-base lld clang sccache
 
 # Install moon binary
 RUN curl -fsSL https://moonrepo.dev/install/moon.sh | bash
@@ -33,13 +33,16 @@ FROM base-moon AS build
 COPY --from=skeleton /app/.moon/docker/workspace .
 
 # Install dependencies
-RUN moon docker setup
+ENV RUSTC_WRAPPER=/usr/bin/sccache
+RUN --mount=type=cache,target=/root/.cache/sccache \
+    moon docker setup
 
 # Copy project sources
 COPY --from=skeleton /app/.moon/docker/sources .
 
 # Build the project
-RUN moon run subscriptions:build -- --release
+RUN --mount=type=cache,target=/root/.cache/sccache \
+    moon run subscriptions:build -- --release
 
 #### START STAGE
 #### Runs the project.
