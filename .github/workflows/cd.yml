@@ -29,5 +29,5 @@ jobs:
           file: ./backend/subscriptions/Dockerfile
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=registry,ref=${{ vars.DOCKER_USERNAME }}/subscriptions:buildcache
+          cache-to: type=registry,ref=${{ vars.DOCKER_USERNAME }}/subscriptions:buildcache,mode=max
