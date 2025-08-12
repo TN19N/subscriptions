@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://moonrepo.dev/schemas/toolchain.json
 
-unstable_rust:
+rust:
   version: 1.89.0
   syncToolchainConfig: true
   binstallVersion: 1.14.4
