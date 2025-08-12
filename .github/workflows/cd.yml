@@ -29,3 +29,5 @@ jobs:
           file: ./backend/subscriptions/Dockerfile
           push: true
           tags: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
