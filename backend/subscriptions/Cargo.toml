@@ -5,6 +5,7 @@ publish = false
 edition = { workspace = true }
 authors = { workspace = true }
 
+
 [dependencies]
 axum = { workspace = true, features = ["tracing"] }
 serde = { workspace = true, features = ["derive"] }
