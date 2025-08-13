@@ -47,7 +47,7 @@ pub async fn run(config: Config) -> Result {
     let listener = TcpListener::bind((config.application.host, config.application.port)).await?;
 
     tracing::info!(
-        "Start listening on: http://localhost:{}",
+        "Star--t listening on: http://localhost:{}",
         config.application.port
     );
     Ok(axum::serve(listener, router).await?)
