@@ -24,7 +24,7 @@ pub enum Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
-        tracing::error!("Internal Server - Error: {self:?}");
+        tracing::error!("Internal Server -  rror: {self:?}");
 
         StatusCode::INTERNAL_SERVER_ERROR.into_response()
     }
