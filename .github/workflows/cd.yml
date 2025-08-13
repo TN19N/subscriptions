@@ -7,9 +7,6 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  DOCKER_FILE_PATH: ./backend/subscriptions/Dockerfile
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,14 +26,14 @@ jobs:
         id: cache
         with:
           path: cache-mount
-          key: cache-mount-${{ hashFiles(${{ env.DOCKER_FILE_PATH }}) }}
+          key: cache-mount-${{ hashFiles(./backend/subscriptions/Dockerfile) }}
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
         with:
           builder: ${{ steps.setup-buildx.outputs.name }}
           cache-dir: cache-mount
-          dockerfile: ${{ env.DOCKER_FILE_PATH }}
+          dockerfile: ./backend/subscriptions/Dockerfile
           skip-extraction: ${{ steps.cache.outputs.cache-hit }}
 
       - name: Log in to Docker Hub
