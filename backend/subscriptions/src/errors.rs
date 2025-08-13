@@ -18,7 +18,7 @@ pub enum Error {
     #[error(transparent)]
     UrlParse(#[from] url::ParseError),
 
-    #[error("{0:?}")]
+    #[error("{0:?} --")]
     Custom(String),
 }
 
