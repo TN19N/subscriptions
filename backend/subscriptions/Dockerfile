@@ -36,14 +36,14 @@ FROM base-moon AS build
 COPY --from=skeleton /app/.moon/docker/workspace .
 
 # Install dependencies
-RUN --mount=type=cache,target=/root/.cache/sccache \
+RUN --mount=type=cache,target=/root/.cache/sccache,sharing=locked \
     moon docker setup
 
 # Copy project sources
 COPY --from=skeleton /app/.moon/docker/sources .
 
 # Build the project
-RUN --mount=type=cache,target=/root/.cache/sccache \
+RUN --mount=type=cache,target=/root/.cache/sccache,sharing=locked \
     moon run subscriptions:build -- --release
 
 #### START STAGE
