@@ -20,7 +20,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Debug
-        uses: env
+        run: env
 
       - name: Check code for errors
         run: cargo check
