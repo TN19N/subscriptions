@@ -1,6 +1,6 @@
 #### BASE STAGE
 #### Contains base image
-FROM lukemathwalker/cargo-chef:0.1.72-rust-1.89-alpine3.20 AS base
+FROM lukemathwalker/cargo-chef:0.1.72-rust-1.89.0-alpine3.20 AS base
 WORKDIR /app
 # Install dependencies
 RUN apk add --no-cache sccache build-base
@@ -28,6 +28,8 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/sccache,sharing=locked \
     cargo build --release
 
+#### START STAGE
+#### start the project.
 FROM alpine:3.22 AS start
 # Copy built sources
 COPY --from=builder /app/target/release/subscriptions .

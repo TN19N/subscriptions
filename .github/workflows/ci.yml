@@ -1,0 +1,37 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+  # Emit backtraces on panics.
+  RUST_BACKTRACE: 1
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    environment: tests
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Check code for errors
+        run: cargo check
+
+      - name: Check code format
+        run: cargo fmt --check
+
+      - name: Check code for lint errors
+        run: cargo clippy -- --deny warnings
+
+      - name: Run tests
+        run: cargo test
