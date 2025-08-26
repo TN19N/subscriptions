@@ -1,4 +1,0 @@
-# yaml-language-server: $schema=https://moonrepo.dev/schemas/project.json
-
-stack: backend
-layer: application

@@ -1,0 +1,15 @@
+[tasks.migrations]
+install_crate = "surrealdb-migrations@2.3"
+command = "surrealdb-migrations"
+args = ["${@}"]
+env_files = [".env"]
+
+[tasks.bacon]
+install_crate = "bacon@3.17"
+command = "bacon"
+args = ["${@}"]
+
+[tasks.upgrade]
+install_crate = "cargo-edit@0.13.6"
+command = "cargo"
+args = ["upgrade", "${@}"]

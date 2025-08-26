@@ -1,13 +1,13 @@
-name: zero2prod
+name: subscriptions
 
 services:
   subscriptions:
     build:
       context: .
-      dockerfile: ./backend/subscriptions/Dockerfile
+      dockerfile: Dockerfile
     restart: unless-stopped
     networks: [backend-network]
-    env_file: .env
+    env_file: .env.docker
 
   database:
     image: surrealdb/surrealdb:v2.3.6
