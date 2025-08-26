@@ -19,8 +19,16 @@ jobs:
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Debug
-        run: env
+      - name: Set all GitHub variables as environment variables
+        env:
+          # Convert the repository variables context object to JSON
+          VARS_CONTEXT_JSON: ${{ toJSON(vars) }}
+          # Convert the repository secrets context object to JSON
+          SECRETS_CONTEXT_JSON: ${{ toJSON(secrets) }}
+        run: |
+          # Use `jq` to parse and flatten the JSON objects into KEY=VALUE format
+          echo "$VARS_CONTEXT_JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
+          echo "$SECRETS_CONTEXT_JSON" | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
 
       - name: Check code for errors
         run: cargo check
