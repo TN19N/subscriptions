@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
@@ -12,12 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      # Checkout the repository code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Docker Buildx
-      # This is required for advanced features like caching
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

@@ -1,12 +1,10 @@
 #### BASE STAGE
 #### Contains base image
-FROM rust:1.89-alpine3.22 AS base
+FROM lukemathwalker/cargo-chef:0.1.72-rust-1.89-alpine3.20 AS base
 WORKDIR /app
 # Install dependencies
 RUN apk add --no-cache sccache build-base
 ENV RUSTC_WRAPPER=sccache
-RUN --mount=type=cache,target=/root/.cache/sccache,sharing=locked \
-    cargo install cargo-chef
 
 #### SKELETON STAGE
 #### Scaffolds repository skeleton structures.
