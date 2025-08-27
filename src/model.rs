@@ -4,6 +4,19 @@ use surrealdb_migrations::MigrationRunner;
 use tokio::sync::OnceCell;
 
 use crate::{Error, Result, config::DatabaseConfig};
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+pub struct Subscription {
+    name: String,
+    email: String,
+}
+
+impl Subscription {
+    pub fn new(name: String, email: String) -> Self {
+        Self { name, email }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ModelManager {
@@ -21,6 +34,17 @@ impl ModelManager {
 
     pub async fn db(&self) -> Result<&Surreal<Any>> {
         self.db.get_or_try_init(async || self.connect().await).await
+    }
+
+    pub async fn create_subscription(&self, subscription: Subscription) -> Result<()> {
+        self.db()
+            .await?
+            .query("CREATE subscriptions SET name = $name, email = $email")
+            .bind(("name", subscription.name))
+            .bind(("email", subscription.email))
+            .await?;
+
+        Ok(())
     }
 
     async fn connect(&self) -> Result<Surreal<Any>> {

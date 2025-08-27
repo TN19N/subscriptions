@@ -15,39 +15,31 @@ async fn main() {
         .init();
 
     // Initialize configuration
-    let config = match Config::load() {
-        Ok(config) => config,
-        Err(error) => {
-            tracing::error!(%error, "Failed to load configuration");
-            process::exit(1);
-        }
-    };
+    let config = Config::load().unwrap_or_else(|error| {
+        tracing::error!(%error, "Failed to load configuration");
+        process::exit(1);
+    });
 
     // Initialize application
-    let (router, _) = match subscriptions::init(&config).await {
-        Ok(result) => result,
-        Err(error) => {
-            tracing::error!(%error, "Failed to initialize application");
-            process::exit(1);
-        }
-    };
+    let (router, _) = subscriptions::init(&config).await.unwrap_or_else(|error| {
+        tracing::error!(%error, "Failed to initialize application");
+        process::exit(1);
+    });
 
     // Bind address
-    let listener = match TcpListener::bind((config.host.clone(), config.port)).await {
-        Ok(listener) => listener,
-        Err(error) => {
+    let listener = TcpListener::bind((config.host.clone(), config.port))
+        .await
+        .unwrap_or_else(|error| {
             tracing::error!(%error, "Failed to bind address `{}:{}`", config.host, config.port);
             process::exit(1);
-        }
-    };
+        });
 
     // Start server
     tracing::info!("Start listening on: http://{}:{}", config.host, config.port);
-    match axum::serve(listener, router).await {
-        Ok(()) => tracing::info!("Server gracefully shutdown"),
-        Err(error) => {
-            tracing::error!(%error, "Failed to start server");
-            process::exit(1);
-        }
+    if let Err(error) = axum::serve(listener, router).await {
+        tracing::error!(%error, "Failed to start server");
+        process::exit(1);
     }
+
+    tracing::info!("Server gracefully shutdown");
 }

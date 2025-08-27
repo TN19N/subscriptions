@@ -1,5 +1,6 @@
-# Rust build dir
+# Rust
 /target
+/rust-toolchain.toml
 
 # Rust tests
 /tests/
@@ -10,3 +11,8 @@
 # Docker
 /Dockerfile
 /docker-compose.yml
+
+# Moon
+/.moon/cache
+/.moon/hooks
+/.moon/docker

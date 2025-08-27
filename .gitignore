@@ -1,7 +1,13 @@
 # Rust
 /target
+/rust-toolchain.toml
 
 # environment variables
 .env*
 !.env.example
 !.env.test
+
+# Moon
+/.moon/cache
+/.moon/hooks
+/.moon/docker
