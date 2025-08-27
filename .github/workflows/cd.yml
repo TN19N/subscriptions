@@ -65,7 +65,7 @@ jobs:
         with:
           service: ${{ vars.GCP_CLOUD_RUN_SERVICE }} # The name of your Cloud Run service
           region: ${{ vars.GCP_CLOUD_RUN_REGION }} # The region of your service (e.g., us-central1)
-          image: ${{ steps.build-and-push.outputs.digest }} # Use the full image digest from the build step
+          image: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
           env_vars: |-
             RUST_LOG=${{ vars.RUST_LOG }}
             SUBSCRIPTIONS__PORT=${{ vars.SUBSCRIPTIONS__PORT }}
