@@ -10,6 +10,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+
+    # Add permissions to the job
+    permissions:
+      contents: "read"
+      id-token: "write"
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -47,3 +53,28 @@ jobs:
           tags: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Deploy to Google Cloud Run
+        uses: "google-github-actions/deploy-cloudrun@v2"
+        with:
+          service: ${{ vars.GCP_CLOUD_RUN_SERVICE }} # The name of your Cloud Run service
+          region: ${{ vars.GCP_CLOUD_RUN_REGION }} # The region of your service (e.g., us-central1)
+          image: ${{ steps.build-and-push.outputs.digest }} # Use the full image digest from the build step
+          env_vars: |-
+            RUST_LOG=${{ vars.RUST_LOG }}
+            SUBSCRIPTIONS__PORT=${{ vars.SUBSCRIPTIONS__PORT }}
+            SUBSCRIPTIONS__HOST=${{ vars.SUBSCRIPTIONS__HOST }}
+            SUBSCRIPTIONS__DATABASE__URL=${{ vars.SUBSCRIPTIONS__DATABASE__URL }}
+            SUBSCRIPTIONS__DATABASE__USERNAME=${{ vars.SUBSCRIPTIONS__DATABASE__USERNAME }}
+            SUBSCRIPTIONS__DATABASE__PASSWORD=${{ secrets.SUBSCRIPTIONS__DATABASE__PASSWORD }}
+            SUBSCRIPTIONS__DATABASE__NAMESPACE=${{ vars.SUBSCRIPTIONS__DATABASE__NAMESPACE }}
+            SUBSCRIPTIONS__DATABASE__NAME=${{ vars.SUBSCRIPTIONS__DATABASE__NAME }}
+
+      - name: Deployment URL
+        run: 'echo "${{ steps.deploy.outputs.url }}"'
