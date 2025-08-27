@@ -66,6 +66,7 @@ jobs:
           service: ${{ vars.GCP_CLOUD_RUN_SERVICE }} # The name of your Cloud Run service
           region: ${{ vars.GCP_CLOUD_RUN_REGION }} # The region of your service (e.g., us-central1)
           image: ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
+          flags: '--allow-unauthenticated' # This flag grants public access
           env_vars: |-
             RUST_LOG=${{ vars.RUST_LOG }}
             SUBSCRIPTIONS__PORT=${{ vars.SUBSCRIPTIONS__PORT }}

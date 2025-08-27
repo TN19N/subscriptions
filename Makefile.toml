@@ -1,11 +1,11 @@
 [tasks.migrations]
-install_crate = "surrealdb-migrations@2.3"
+install_crate = "surrealdb-migrations@2.3.0"
 command = "surrealdb-migrations"
 args = ["${@}"]
 env_files = [".env"]
 
 [tasks.bacon]
-install_crate = "bacon@3.17"
+install_crate = "bacon@3.17.0"
 command = "bacon"
 args = ["${@}"]
 
