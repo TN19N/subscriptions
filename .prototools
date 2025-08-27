@@ -1,0 +1,5 @@
+moon = "1.39.4"
+proto = "0.51.6"
+
+[settings]
+auto-install = true

@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/workspace.json
+
+projects:
+  - "."
+
+experiments:
+  fasterGlobWalk: true
+  gitV2: true
+
+vcs:
+  defaultBranch: main
+  manager: git
+  provider: github
+  syncHooks: true
+  hooks:
+    pre-commit:
+      - moon ci

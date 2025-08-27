@@ -1,5 +1,5 @@
-use crate::Result;
 use crate::model::ModelManager;
+use crate::{Result, model::Subscription};
 use axum::{Form, extract::State, http::StatusCode};
 use serde::Deserialize;
 use std::sync::Arc;
@@ -15,13 +15,8 @@ pub async fn subscribe(
     State(mm): State<Arc<ModelManager>>,
     Form(form): Form<FormData>,
 ) -> Result<StatusCode> {
-    mm.db()
-        .await?
-        .query("CREATE subscriptions SET name = $name, email = $email")
-        .bind(("name", form.name))
-        .bind(("email", form.email))
-        .await?
-        .check()?;
+    let subscription = Subscription::new(form.name, form.email);
+    mm.create_subscription(subscription).await?;
 
     Ok(StatusCode::CREATED)
 }

@@ -1,0 +1,7 @@
+# yaml-language-server: $schema=https://moonrepo.dev/schemas/tasks.json
+
+tasks:
+  run:
+    command: cargo run
+    description: Run a binary or example of the local package
+    preset: server

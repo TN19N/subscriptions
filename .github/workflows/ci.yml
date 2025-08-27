@@ -14,20 +14,19 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
           cache-on-failure: true
 
-      - name: Check code for errors
-        run: cargo check
+      - name: Checks
+        run: moon ci --color
 
-      - name: Check code format
-        run: cargo fmt --check
-
-      - name: Check code for lint errors
-        run: cargo clippy -- --deny warnings
-
-      - name: Run tests
-        run: cargo test
+      - name: Run report
+        uses: moonrepo/run-report-action@v1
+        if: success() || failure()
+        with:
+          access-token: ${{ secrets.GITHUB_TOKEN }}
