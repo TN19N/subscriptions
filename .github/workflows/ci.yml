@@ -22,6 +22,11 @@ jobs:
         with:
           cache-on-failure: true
 
+      - name: Set up toolchain
+        uses: moonrepo/setup-toolchain@v0
+        with:
+          auto-install: true
+
       - name: Checks
         run: moon ci --color
 
