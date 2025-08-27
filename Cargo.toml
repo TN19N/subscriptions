@@ -4,6 +4,7 @@ version = "0.1.0"
 publish = false
 authors = ["Mustapha Annouaoui <mostafaanawawi@gmail.com>"]
 edition = "2024"
+license = "MIT"
 
 [dependencies]
 axum = { version = "0.8.4", features = ["tracing"] }

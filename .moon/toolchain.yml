@@ -5,8 +5,8 @@ rust:
   syncToolchainConfig: true
   binstallVersion: 1.14.4
   components:
-    - "clippy"
-    - "rustfmt"
+    - clippy
+    - rustfmt
   bins:
     - bin: bacon@3.17.0
       local: true
@@ -15,6 +15,4 @@ rust:
     - bin: surrealdb-migrations@2.3.0
       local: true
     - bin: systemfd@0.4.6
-      local: true
-    - bin: cargo-udeps@0.1.57
       local: true
