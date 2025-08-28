@@ -28,7 +28,8 @@ impl ModelManager {
             .query("CREATE subscriptions SET name = $name, email = $email")
             .bind(("name", subscriber.name.as_ref().to_string()))
             .bind(("email", subscriber.email.as_ref().to_string()))
-            .await?;
+            .await?
+            .check()?;
 
         Ok(())
     }

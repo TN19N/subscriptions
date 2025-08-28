@@ -15,11 +15,8 @@ impl TryFrom<String> for SubscriberEmail {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         match value.validate_email() {
             true => Ok(Self(value)),
-            false => {
-                let mut error = ValidationError::new("Invalid Subscriber Email");
-                error.add_param("Invalid Email".into(), &value);
-                Err(error)
-            }
+            false => Err(ValidationError::new("INVALID_SUBSCRIBER_EMAIL")
+                .with_message(format!("Invalid subscriber email `{value}`").into())),
         }
     }
 }
