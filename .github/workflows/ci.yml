@@ -20,7 +20,10 @@ jobs:
       - name: Setup Rust Cache
         uses: Swatinem/rust-cache@v2
         with:
+          shared-key: cd
           cache-on-failure: true
+          cache-all-crates: true
+          cache-workspace-crates: true
 
       - name: Set up toolchain
         uses: moonrepo/setup-toolchain@v0
