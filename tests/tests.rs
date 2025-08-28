@@ -109,12 +109,35 @@ async fn subscribe_failed() {
     // Arrange
     let (app, _) = init().await.expect("Expected App to be initialized!");
     let test_cases = [
-        ("name=le%20guin", "missing the email"),
-        ("email=ursula_le_guin%40gmail.com", "missing the name"),
-        ("", "missing the name and email"),
+        (
+            "name=le%20guin",
+            "missing the email",
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ),
+        (
+            "email=ursula_le_guin%40gmail.com",
+            "missing the name",
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ),
+        (
+            "",
+            "missing the name and email",
+            StatusCode::UNPROCESSABLE_ENTITY,
+        ),
+        (
+            "name=&email=ursula_le_guin%40gmail.com",
+            "empty name",
+            StatusCode::BAD_REQUEST,
+        ),
+        ("name=Ursula&email=", "empty email", StatusCode::BAD_REQUEST),
+        (
+            "name=Ursula&email=definitely-not-an-email",
+            "invalid email",
+            StatusCode::BAD_REQUEST,
+        ),
     ];
 
-    for (invalid_body, error_message) in test_cases {
+    for (invalid_body, error_message, expected_status) in test_cases {
         // Act
         let response = app
             .clone()
@@ -135,8 +158,8 @@ async fn subscribe_failed() {
         // Assert
         assert_eq!(
             response.status(),
-            StatusCode::UNPROCESSABLE_ENTITY,
-            "The Api did not fail with 400 Bad Request when payload was {error_message}."
+            expected_status,
+            "The Api did not fail with status {expected_status} when payload was {error_message}."
         );
     }
 }

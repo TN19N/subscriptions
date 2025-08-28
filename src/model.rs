@@ -1,22 +1,8 @@
+use crate::{Error, Result, config::DatabaseConfig, domain};
 use secrecy::ExposeSecret;
 use surrealdb::{Surreal, engine::any::Any, opt::auth::Database};
 use surrealdb_migrations::MigrationRunner;
 use tokio::sync::OnceCell;
-
-use crate::{Error, Result, config::DatabaseConfig};
-use serde::Serialize;
-
-#[derive(Debug, Serialize)]
-pub struct Subscription {
-    name: String,
-    email: String,
-}
-
-impl Subscription {
-    pub fn new(name: String, email: String) -> Self {
-        Self { name, email }
-    }
-}
 
 #[derive(Debug, Clone)]
 pub struct ModelManager {
@@ -36,12 +22,12 @@ impl ModelManager {
         self.db.get_or_try_init(async || self.connect().await).await
     }
 
-    pub async fn create_subscription(&self, subscription: Subscription) -> Result<()> {
+    pub async fn create_subscriber(&self, subscriber: domain::Subscriber) -> Result<()> {
         self.db()
             .await?
             .query("CREATE subscriptions SET name = $name, email = $email")
-            .bind(("name", subscription.name))
-            .bind(("email", subscription.email))
+            .bind(("name", subscriber.name.as_ref().to_string()))
+            .bind(("email", subscriber.email.as_ref().to_string()))
             .await?;
 
         Ok(())
