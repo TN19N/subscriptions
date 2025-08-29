@@ -20,7 +20,7 @@ tokio = { version = "1.47.1", features = ["macros", "rt-multi-thread", "sync"] }
 tower = "0.5.2"
 tower-http = { version = "0.6.6", features = ["trace", "request-id"] }
 tracing = "0.1.41"
-tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 unicode-segmentation = "1.12.0"
 url = { version = "2.5.7", features = ["serde"] }
 validator = "0.20.0"
