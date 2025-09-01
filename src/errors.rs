@@ -15,13 +15,20 @@ pub enum Error {
     #[error(transparent)]
     UrlParse(#[from] url::ParseError),
     #[error(transparent)]
-    ValidationError(#[from] validator::ValidationErrors),
+    ValidationErrors(#[from] validator::ValidationErrors),
+    #[error(transparent)]
+    ValidationError(#[from] validator::ValidationError),
+    #[error(transparent)]
+    Reqwest(#[from] reqwest::Error),
+
+    #[error("{0:?}")]
+    Custom(String),
 }
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
         match self {
-            Self::ValidationError(_) => {
+            Self::ValidationErrors(_) | Self::ValidationError(_) => {
                 tracing::info!("Bad request: - {self:?}");
                 StatusCode::BAD_REQUEST.into_response()
             }

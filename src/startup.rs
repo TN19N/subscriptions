@@ -1,7 +1,7 @@
 use crate::{
     Result,
     config::Config,
-    handlers::{health, subscribe},
+    handlers::{confirm, health, subscribe},
     state::AppState,
 };
 use axum::{
@@ -17,7 +17,7 @@ use tower_http::{
 
 const REQUEST_ID_HEADER: HeaderName = HeaderName::from_static("x-request-id");
 
-pub async fn init(config: &Config) -> Result<(Router, AppState)> {
+pub async fn init(config: Config) -> Result<(Router, AppState)> {
     let state = AppState::new(config).await?;
 
     let middleware = ServiceBuilder::new()
@@ -35,6 +35,7 @@ pub async fn init(config: &Config) -> Result<(Router, AppState)> {
     let router = Router::new()
         .route("/health", get(health))
         .route("/subscriptions", post(subscribe))
+        .route("/subscriptions/confirm", get(confirm))
         .layer(middleware)
         .with_state(state.clone());
 
