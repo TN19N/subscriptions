@@ -1,6 +1,8 @@
+use serde::Deserialize;
+use std::convert::TryFrom;
 use validator::{ValidateEmail, ValidationError};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct SubscriberEmail(String);
 
 impl AsRef<str> for SubscriberEmail {
@@ -57,8 +59,6 @@ mod tests {
     proptest! {
         #[test]
         fn test_valid_emails_are_accepted(email in valid_email_strategy()) {
-            dbg!(&email);
-
             assert_ok!(SubscriberEmail::try_from(email));
         }
     }

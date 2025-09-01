@@ -1,5 +1,6 @@
 mod config;
 mod domain;
+mod email_client;
 mod errors;
 mod handlers;
 mod model;

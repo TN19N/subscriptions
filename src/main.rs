@@ -21,10 +21,12 @@ async fn main() {
     });
 
     // Initialize application
-    let (router, _) = subscriptions::init(&config).await.unwrap_or_else(|error| {
-        tracing::error!(%error, "Failed to initialize application");
-        process::exit(1);
-    });
+    let (router, _) = subscriptions::init(config.clone())
+        .await
+        .unwrap_or_else(|error| {
+            tracing::error!(%error, "Failed to initialize application");
+            process::exit(1);
+        });
 
     // Bind address
     let listener = TcpListener::bind((config.host.clone(), config.port))
