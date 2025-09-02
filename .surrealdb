@@ -1,0 +1,3 @@
+[core]
+schema = "full"
+path = "./surrealdb"

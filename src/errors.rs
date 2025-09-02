@@ -5,7 +5,7 @@ pub type Result<T = ()> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    SurrealDb(#[from] surrealdb::Error),
+    SurrealDb(#[from] Box<surrealdb::Error>),
     #[error("{0:?}")]
     Migrations(String),
     #[error(transparent)]
