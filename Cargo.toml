@@ -17,7 +17,7 @@ codegen-units = 1
 axum = { version = "0.8.4", features = ["tracing"] }
 config = "0.15.15"
 dotenvy = "0.15.7"
-reqwest = { version = "0.12.23", default-features = true, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls"] }
 secrecy = { version = "0.10.3", features = ["serde"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde-humantime = "0.1.1"
