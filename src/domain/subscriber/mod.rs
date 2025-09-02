@@ -1,9 +1,8 @@
 mod email;
 mod name;
 
-pub use email::SubscriberEmail;
-
 use crate::handlers::FormData;
+pub use email::SubscriberEmail;
 use name::SubscriberName;
 use validator::ValidationErrors;
 

@@ -1,4 +1,5 @@
 use crate::{Error, Result, config::DatabaseConfig, domain};
+use include_dir::include_dir;
 use secrecy::ExposeSecret;
 use surrealdb::{Surreal, engine::any::Any, opt::auth::Database};
 use surrealdb_migrations::MigrationRunner;
@@ -44,8 +45,30 @@ impl ModelManager {
             .bind(("token_val", token.to_string()))
             .bind(("email", subscriber.email.as_ref().to_string()))
             .bind(("name", subscriber.name.as_ref().to_string()))
+            .await.map_err(Box::new)?
+            .check().map_err(Box::new)?;
+
+        Ok(())
+    }
+
+    pub async fn confirm_subscriber(&self, token: String) -> Result<()> {
+        self.db()
             .await?
-            .check()?;
+            .query(
+                r#"
+                UPDATE subscriptions
+                SET status = 'CONFIRMED'
+                WHERE token = (
+                    SELECT id
+                    FROM ONLY subscription_tokens
+                    WHERE token = $token_val
+                ).id
+                AND status = 'PENDING';
+            "#,
+            )
+            .bind(("token_val", token))
+            .await
+            .map_err(Box::new)?;
 
         Ok(())
     }
@@ -55,7 +78,9 @@ impl ModelManager {
         let db = Surreal::<Any>::init();
 
         tracing::info!("Connecting to database: {}", config.base_url.as_str());
-        db.connect(config.base_url.as_str()).await?;
+        db.connect(config.base_url.as_str())
+            .await
+            .map_err(Box::new)?;
 
         if config.base_url.scheme() == "mem" {
             db.query(format!("DEFINE NAMESPACE {}", config.namespace))
@@ -66,7 +91,8 @@ impl ModelManager {
                     config.username,
                     config.password.expose_secret()
                 ))
-                .await?;
+                .await
+                .map_err(Box::new)?;
         }
 
         db.signin(Database {
@@ -75,10 +101,12 @@ impl ModelManager {
             namespace: &config.namespace,
             database: &config.name,
         })
-        .await?;
+        .await
+        .map_err(Box::new)?;
 
         // Apply Migrations
         MigrationRunner::new(&db)
+            .load_files(&include_dir!("$CARGO_MANIFEST_DIR/surrealdb"))
             .up()
             .await
             .map_err(|e| Error::Migrations(e.to_string()))?;

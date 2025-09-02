@@ -1,10 +1,9 @@
-use std::process;
-use subscriptions::Config;
+use subscriptions::{Config, Error};
 use tokio::net::TcpListener;
 use tracing_subscriber::prelude::*;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Error> {
     // Load environment variables from .env file if exists
     dotenvy::dotenv_override().ok();
 
@@ -15,33 +14,19 @@ async fn main() {
         .init();
 
     // Initialize configuration
-    let config = Config::load().unwrap_or_else(|error| {
-        tracing::error!(%error, "Failed to load configuration");
-        process::exit(1);
-    });
+    let config = Config::load()?;
 
     // Initialize application
-    let (router, _) = subscriptions::init(config.clone())
-        .await
-        .unwrap_or_else(|error| {
-            tracing::error!(%error, "Failed to initialize application");
-            process::exit(1);
-        });
+    let (router, _) = subscriptions::init(config.clone()).await?;
 
     // Bind address
-    let listener = TcpListener::bind((config.host.clone(), config.port))
-        .await
-        .unwrap_or_else(|error| {
-            tracing::error!(%error, "Failed to bind address `{}:{}`", config.host, config.port);
-            process::exit(1);
-        });
+    let listener = TcpListener::bind((config.host.clone(), config.port)).await?;
 
     // Start server
     tracing::info!("Start listening on: http://{}:{}", config.host, config.port);
-    if let Err(error) = axum::serve(listener, router).await {
-        tracing::error!(%error, "Failed to start server");
-        process::exit(1);
-    }
+    axum::serve(listener, router).await?;
 
     tracing::info!("Server gracefully shutdown");
+
+    Ok(())
 }
