@@ -50,7 +50,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: -|
+          tags: |-
             ${{ vars.DOCKER_USERNAME }}/subscriptions:latest
             ${{ vars.DOCKER_USERNAME }}/subscriptions:${{ github.sha }}
           cache-from: type=gha
