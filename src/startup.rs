@@ -1,7 +1,7 @@
 use crate::{
     Result,
     config::Config,
-    handlers::{confirm, health, subscribe},
+    handlers::{confirm, health, publish_newsletter, subscribe},
     state::AppState,
 };
 use axum::{
@@ -36,6 +36,7 @@ pub async fn init(config: Config) -> Result<(Router, AppState)> {
         .route("/health", get(health))
         .route("/subscriptions", post(subscribe))
         .route("/subscriptions/confirm", get(confirm))
+        .route("/newsletter", post(publish_newsletter))
         .layer(middleware)
         .with_state(state.clone());
 

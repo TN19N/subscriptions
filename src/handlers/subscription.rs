@@ -1,6 +1,4 @@
-use crate::{
-    AppState, Config, Result, domain::Subscriber, email_client::EmailClient, model::ModelManager,
-};
+use crate::{Config, Result, domain::Subscriber, email_client::EmailClient, model::ModelManager};
 use axum::extract::Query;
 use axum::{Form, extract::State};
 use rand::Rng;
@@ -16,7 +14,6 @@ pub struct FormData {
     pub name: String,
 }
 
-#[axum::debug_handler(state = AppState)]
 #[tracing::instrument(skip(mm, config, email_client))]
 pub async fn subscribe(
     State(mm): State<Arc<ModelManager>>,
@@ -40,7 +37,6 @@ pub struct Params {
     token: String,
 }
 
-#[axum::debug_handler(state = AppState)]
 #[tracing::instrument(skip(mm))]
 pub async fn confirm(
     State(mm): State<Arc<ModelManager>>,

@@ -1,6 +1,7 @@
 use crate::{Error, Result, config::DatabaseConfig, domain};
 use include_dir::include_dir;
 use secrecy::ExposeSecret;
+use serde::Deserialize;
 use surrealdb::{Surreal, engine::any::Any, opt::auth::Database};
 use surrealdb_migrations::MigrationRunner;
 use tokio::sync::OnceCell;
@@ -9,6 +10,11 @@ use tokio::sync::OnceCell;
 pub struct ModelManager {
     config: DatabaseConfig,
     db: OnceCell<Surreal<Any>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ConfirmedSubscriber {
+    pub email: String,
 }
 
 impl ModelManager {
@@ -45,8 +51,8 @@ impl ModelManager {
             .bind(("token_val", token.to_string()))
             .bind(("email", subscriber.email.as_ref().to_string()))
             .bind(("name", subscriber.name.as_ref().to_string()))
-            .await.map_err(Box::new)?
-            .check().map_err(Box::new)?;
+            .await?
+            .check()?;
 
         Ok(())
     }
@@ -67,10 +73,23 @@ impl ModelManager {
             "#,
             )
             .bind(("token_val", token))
-            .await
-            .map_err(Box::new)?;
+            .await?;
 
         Ok(())
+    }
+
+    pub async fn get_confirmed_subscribers(&self) -> Result<Vec<ConfirmedSubscriber>> {
+        Ok(self
+            .db()
+            .await?
+            .query(
+                r#"
+                SELECT * FROM subscriptions
+                WHERE status = 'CONFIRMED';
+            "#,
+            )
+            .await?
+            .take(0)?)
     }
 
     async fn connect(&self) -> Result<Surreal<Any>> {
@@ -78,9 +97,7 @@ impl ModelManager {
         let db = Surreal::<Any>::init();
 
         tracing::info!("Connecting to database: {}", config.base_url.as_str());
-        db.connect(config.base_url.as_str())
-            .await
-            .map_err(Box::new)?;
+        db.connect(config.base_url.as_str()).await?;
 
         if config.base_url.scheme() == "mem" {
             db.query(format!("DEFINE NAMESPACE {}", config.namespace))
@@ -91,8 +108,7 @@ impl ModelManager {
                     config.username,
                     config.password.expose_secret()
                 ))
-                .await
-                .map_err(Box::new)?;
+                .await?;
         }
 
         db.signin(Database {
@@ -101,8 +117,7 @@ impl ModelManager {
             namespace: &config.namespace,
             database: &config.name,
         })
-        .await
-        .map_err(Box::new)?;
+        .await?;
 
         // Apply Migrations
         MigrationRunner::new(&db)
