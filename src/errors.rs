@@ -5,7 +5,7 @@ pub type Result<T = ()> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error(transparent)]
-    SurrealDb(#[from] Box<surrealdb::Error>),
+    SurrealDb(Box<surrealdb::Error>),
     #[error("{0:?}")]
     Migrations(String),
     #[error(transparent)]
@@ -23,6 +23,12 @@ pub enum Error {
 
     #[error("{0:?}")]
     Custom(String),
+}
+
+impl From<surrealdb::Error> for Error {
+    fn from(value: surrealdb::Error) -> Self {
+        Self::SurrealDb(Box::new(value))
+    }
 }
 
 impl IntoResponse for Error {
