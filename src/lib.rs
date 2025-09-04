@@ -4,6 +4,7 @@ mod email_client;
 mod errors;
 mod handlers;
 mod model;
+mod session_state;
 mod startup;
 mod state;
 

@@ -1,8 +1,8 @@
-use crate::{Error, Result, config::DatabaseConfig, domain};
+use crate::{Error, Result, config::DatabaseConfig, domain, handlers::Credentials};
 use include_dir::include_dir;
 use secrecy::ExposeSecret;
 use serde::Deserialize;
-use surrealdb::{Surreal, engine::any::Any, opt::auth::Database};
+use surrealdb::{RecordId, Surreal, engine::any::Any, opt::auth::Database};
 use surrealdb_migrations::MigrationRunner;
 use tokio::sync::OnceCell;
 
@@ -90,6 +90,39 @@ impl ModelManager {
             )
             .await?
             .take(0)?)
+    }
+
+    pub async fn validate_credientials(&self, credentials: Credentials) -> Result<RecordId> {
+        #[derive(Debug, Deserialize)]
+        struct QueryResult {
+            id: RecordId,
+        }
+        let result = self
+            .db()
+            .await?
+            .query(
+                r#"
+                SELECT id
+                FROM ONLY users
+                WHERE username = $username AND crypto::argon2::compare(password, $password);
+                "#,
+            )
+            .bind(("username", credentials.username))
+            .bind(("password", credentials.password.expose_secret().to_string()))
+            .await?
+            .take::<Option<QueryResult>>(0)?
+            .ok_or(Error::Custom("User not found!".into()))?;
+        Ok(result.id)
+    }
+
+    pub async fn get_username(&self, id: RecordId) -> Result<String> {
+        self.db()
+            .await?
+            .query(r#"SELECT VALUE username FROM ONLY $recordId"#)
+            .bind(("recordId", id))
+            .await?
+            .take::<Option<String>>(0)?
+            .ok_or(Error::Custom("User with this id don't exists".into()))
     }
 
     async fn connect(&self) -> Result<Surreal<Any>> {
