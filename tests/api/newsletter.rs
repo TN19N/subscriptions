@@ -1,3 +1,4 @@
+use base64::{Engine, prelude::BASE64_STANDARD};
 use reqwest::{Method, StatusCode};
 use serde_json::json;
 use wiremock::{
@@ -5,7 +6,7 @@ use wiremock::{
     matchers::{any, method},
 };
 
-use crate::helpers::{ConfirmationLinks, TestApp};
+use crate::helpers::{ConfirmationLinks, Credentials, TestApp};
 
 async fn create_unconfirmed_subscriber(app: &TestApp) -> ConfirmationLinks {
     let body = [("name", "let guin"), ("email", "ursula_le_guin@gmail.com")];
@@ -42,6 +43,13 @@ async fn create_confirmed_subscriber(app: &TestApp) {
         .assert_status_success();
 }
 
+fn get_basic_authorization_header(user: &Credentials) -> String {
+    format!(
+        "Basic {}",
+        BASE64_STANDARD.encode(format!("{}:{}", user.username, user.password))
+    )
+}
+
 #[tokio::test]
 async fn newsletter_are_not_delivered_to_unconfirmed_subscribers() {
     // Arrange
@@ -58,7 +66,12 @@ async fn newsletter_are_not_delivered_to_unconfirmed_subscribers() {
            "html": "<p>Newsletter body as html</p>",
        },
     });
-    let response = app.server.post("/newsletter").json(&newsletter).await;
+    let response = app
+        .server
+        .post("/newsletter")
+        .authorization(get_basic_authorization_header(&app.test_user))
+        .json(&newsletter)
+        .await;
 
     // Assert
     assert_eq!(response.status_code(), StatusCode::OK);
@@ -87,7 +100,12 @@ async fn newsletter_are_delivered_to_confirmed_subscribers() {
            "html": "<p>Newsletter body as html</p>",
        },
     });
-    let response = app.server.post("/newsletter").json(&newsletter).await;
+    let response = app
+        .server
+        .post("/newsletter")
+        .authorization(get_basic_authorization_header(&app.test_user))
+        .json(&newsletter)
+        .await;
 
     // Assert
     assert_eq!(response.status_code(), StatusCode::OK);
@@ -119,7 +137,12 @@ async fn newsletter_return_400_for_invalid_data() {
 
     for (invalid_body, error_message) in test_cases {
         // Act
-        let response = app.server.post("/newsletter").json(&invalid_body).await;
+        let response = app
+            .server
+            .post("/newsletter")
+            .authorization(get_basic_authorization_header(&app.test_user))
+            .json(&invalid_body)
+            .await;
 
         // Assert
         assert_eq!(
@@ -129,4 +152,96 @@ async fn newsletter_return_400_for_invalid_data() {
             error_message
         );
     }
+}
+
+#[tokio::test]
+async fn requests_messing_authorization_are_rejected() {
+    // Arrange
+    let app = TestApp::new()
+        .await
+        .expect("Expected the app to be inisilized!");
+
+    // Act
+    let response = app
+        .server
+        .post("/newsletter")
+        .json(&json!({
+            "title": "Newsletter title",
+            "content": {
+                "text": "Newsletter body as plain text",
+                "html": "<p>Newsletter body as html</p>",
+            },
+        }))
+        .await;
+
+    // Assert
+    assert_eq!(response.status_code(), StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        response.header("WWW-Authenticate")
+    );
+}
+
+#[tokio::test]
+async fn non_existing_user_is_rejected() {
+    // Arrange
+    let app = TestApp::new()
+        .await
+        .expect("Expected the app to be inisilized!");
+
+    // Act
+    let response = app
+        .server
+        .post("/newsletter")
+        .authorization(get_basic_authorization_header(&Credentials {
+            username: "what".into(),
+            password: "password-non".into(),
+        }))
+        .json(&json!({
+            "title": "Newsletter title",
+            "content": {
+                "text": "Newsletter body as plain text",
+                "html": "<p>Newsletter body as html</p>",
+            },
+        }))
+        .await;
+
+    // Assert
+    assert_eq!(response.status_code(), StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        response.header("WWW-Authenticate")
+    );
+}
+
+#[tokio::test]
+async fn invalid_password_is_rejected() {
+    // Arrange
+    let app = TestApp::new()
+        .await
+        .expect("Expected the app to be inisilized!");
+
+    // Act
+    let response = app
+        .server
+        .post("/newsletter")
+        .authorization(get_basic_authorization_header(&Credentials {
+            username: app.test_user.username.clone(),
+            password: "invalid-password".into(),
+        }))
+        .json(&json!({
+            "title": "Newsletter title",
+            "content": {
+                "text": "Newsletter body as plain text",
+                "html": "<p>Newsletter body as html</p>",
+            },
+        }))
+        .await;
+
+    // Assert
+    assert_eq!(response.status_code(), StatusCode::UNAUTHORIZED);
+    assert_eq!(
+        r#"Basic realm="publish""#,
+        response.header("WWW-Authenticate")
+    );
 }

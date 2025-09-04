@@ -1,6 +1,5 @@
-use std::str::FromStr;
-
 use axum_test::TestServer;
+use std::str::FromStr;
 use subscriptions::{AppState, Config};
 use tokio::sync::OnceCell;
 use tracing_subscriber::prelude::*;
@@ -9,10 +8,16 @@ use wiremock::MockServer;
 
 pub type Result<T = ()> = std::result::Result<T, Box<dyn std::error::Error>>;
 
+pub struct Credentials {
+    pub username: String,
+    pub password: String,
+}
+
 pub struct TestApp {
     pub server: TestServer,
     pub state: AppState,
     pub email_server: MockServer,
+    pub test_user: Credentials,
 }
 
 pub struct ConfirmationLinks {
@@ -41,12 +46,38 @@ impl TestApp {
         let email_server = MockServer::start().await;
         config.email_client.base_url = Url::from_str(&email_server.uri())?;
 
+        let test_user = Credentials {
+            password: "password".into(),
+            username: "username".into(),
+        };
         let (router, state) = subscriptions::init(config).await?;
 
+        // create test user for valid authentications
+        state
+            .mm
+            .db()
+            .await
+            .unwrap()
+            .query(
+                r#"
+                INSERT INTO users {
+                    username: $username,
+                    password: crypto::argon2::generate($password)
+                }
+            "#,
+            )
+            .bind(("username", test_user.username.clone()))
+            .bind(("password", test_user.password.clone()))
+            .await
+            .unwrap()
+            .check()
+            .unwrap();
+
         Ok(TestApp {
-            server: TestServer::new(router)?,
+            server: TestServer::builder().save_cookies().build(router)?,
             state,
             email_server,
+            test_user,
         })
     }
 

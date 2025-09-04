@@ -464,6 +464,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-messages"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d67ce6e7bc1e1e71f2a4e86d418045a29c63c4ebb631f3d9bb2f81c4958ea391"
+dependencies = [
+ "axum-core",
+ "http",
+ "parking_lot",
+ "serde",
+ "serde_json",
+ "tower",
+ "tower-sessions-core",
+ "tracing",
+]
+
+[[package]]
 name = "axum-test"
 version = "18.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1039,6 +1055,7 @@ version = "0.18.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ddef33a339a91ea89fb53151bd0a4689cfce27055c291dfa69945475d22c747"
 dependencies = [
+ "percent-encoding",
  "time",
  "version_check",
 ]
@@ -1901,6 +1918,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "htmlescape"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9025058dae765dee5070ec375f591e2ba14638c63feff74f13805a72e523163"
+
+[[package]]
 name = "http"
 version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2464,6 +2487,7 @@ checksum = "96936507f153605bddfcda068dd804796c84324ed2510809e5b2a624c81da765"
 dependencies = [
  "autocfg",
  "scopeguard",
+ "serde",
 ]
 
 [[package]]
@@ -4303,11 +4327,16 @@ name = "subscriptions"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "axum-messages",
  "axum-test",
+ "base64 0.22.1",
  "claims",
  "config",
  "dotenvy",
  "fake",
+ "hex",
+ "hmac",
+ "htmlescape",
  "include_dir",
  "linkify",
  "mime",
@@ -4318,16 +4347,21 @@ dependencies = [
  "serde",
  "serde-humantime",
  "serde_json",
+ "sha2",
  "surrealdb",
  "surrealdb-migrations",
  "thiserror 2.0.16",
  "tokio",
  "tower",
+ "tower-cookies",
  "tower-http",
+ "tower-sessions",
+ "tower-sessions-surrealdb-store",
  "tracing",
  "tracing-subscriber",
  "unicode-segmentation",
  "url",
+ "urlencoding",
  "validator",
  "wiremock",
 ]
@@ -4892,6 +4926,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tower-cookies"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "151b5a3e3c45df17466454bb74e9ecedecc955269bdedbf4d150dfa393b55a36"
+dependencies = [
+ "axum-core",
+ "cookie",
+ "futures-util",
+ "http",
+ "parking_lot",
+ "pin-project-lite",
+ "tower-layer",
+ "tower-service",
+]
+
+[[package]]
 name = "tower-http"
 version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4922,6 +4972,71 @@ name = "tower-service"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8df9b6e13f2d32c91b9bd719c00d1958837bc7dec474d94952798cc8e69eeec3"
+
+[[package]]
+name = "tower-sessions"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43a05911f23e8fae446005fe9b7b97e66d95b6db589dc1c4d59f6a2d4d4927d3"
+dependencies = [
+ "async-trait",
+ "http",
+ "time",
+ "tokio",
+ "tower-cookies",
+ "tower-layer",
+ "tower-service",
+ "tower-sessions-core",
+ "tower-sessions-memory-store",
+ "tracing",
+]
+
+[[package]]
+name = "tower-sessions-core"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ce8cce604865576b7751b7a6bc3058f754569a60d689328bb74c52b1d87e355b"
+dependencies = [
+ "async-trait",
+ "axum-core",
+ "base64 0.22.1",
+ "futures",
+ "http",
+ "parking_lot",
+ "rand 0.8.5",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.16",
+ "time",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "tower-sessions-memory-store"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb05909f2e1420135a831dd5df9f5596d69196d0a64c3499ca474c4bd3d33242"
+dependencies = [
+ "async-trait",
+ "time",
+ "tokio",
+ "tower-sessions-core",
+]
+
+[[package]]
+name = "tower-sessions-surrealdb-store"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "506e6bb3e5d6c9b9d80dd3070a01032c6d1436c411002ed07fe4e2cf1ce71ccc"
+dependencies = [
+ "async-trait",
+ "rmp-serde",
+ "serde",
+ "surrealdb",
+ "tower-sessions-core",
+ "tracing",
+]
 
 [[package]]
 name = "tracing"

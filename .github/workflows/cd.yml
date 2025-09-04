@@ -84,6 +84,7 @@ jobs:
             SUBSCRIPTIONS__EMAIL_CLIENT__BASE_URL=${{ vars.SUBSCRIPTIONS__EMAIL_CLIENT__BASE_URL }}
             SUBSCRIPTIONS__EMAIL_CLIENT__AUTH_TOKEN=${{ secrets.SUBSCRIPTIONS__EMAIL_CLIENT__AUTH_TOKEN }}
             SUBSCRIPTIONS__EMAIL_CLIENT__TIMEOUT=${{ vars.SUBSCRIPTIONS__EMAIL_CLIENT__TIMEOUT }}
+            SUBSCRIPTIONS__HMAC_SECRET=${{ vars.SUBSCRIPTIONS__HMAC_SECRET }}
 
       - name: Deployment URL
         run: 'echo "${{ steps.deploy.outputs.url }}"'

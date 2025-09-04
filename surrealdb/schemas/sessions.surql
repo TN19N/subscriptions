@@ -1,0 +1,3 @@
+# --- TABLE ---
+DEFINE TABLE OVERWRITE sessions SCHEMALESS
+COMMENT 'Sessions table';
